@@ -1,0 +1,29 @@
+# Module
+Module500000Name=Peppol Export
+Module500000Desc=Export des factures au format UBL vers Peppol
+
+# Admin
+PeppolExportSetup=Configuration Peppol Export
+Settings=Paramètres
+PeppolAPIURL=URL de l'API Peppol
+PeppolAPIURLHelp=URL de l'API Peppyrus
+PeppolAPIKey=Clé API
+PeppolAPIKeyHelp=Votre clé API Peppyrus
+YourPeppolID=Votre identifiant Peppol
+YourPeppolIDHelp=Format: 9925:be0886776275
+
+# Boutons
+SendToPeppol=Envoyer vers Peppol
+GenerateUBL=Générer UBL
+PeppolNetworkLookup=Rechercher dans Peppol
+
+# Messages
+PeppolSendConfirm=Envoyer cette facture vers Peppol ?
+InvoiceSentSuccessfully=Facture envoyée avec succès
+ErrorSendingToPeppol=Erreur lors de l'envoi
+PeppolRecipientNotConfigured=ID Peppol du client non configuré
+ParticipantFound=Participant trouvé
+ParticipantNotFound=Participant non trouvé
+APIKeyMissing=Clé API non configurée
+ErrorGeneratingUBL=Erreur lors de la génération UBL
+UBLGeneratedSuccessfully=Fichier UBL généré avec succès
