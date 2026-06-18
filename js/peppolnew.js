@@ -2,6 +2,9 @@
  * JavaScript pour le module Peppol Export
  */
 
+// Racine d'URL Dolibarr (injectée par le hook). Fallback sur la racine du site.
+var PEPPOLNEW_BASE = (typeof PEPPOLNEW_URL_ROOT !== 'undefined' ? PEPPOLNEW_URL_ROOT : '') + '/custom/peppolnew/peppol_send.php';
+
 function searchPeppol(invoiceId) {
     if (!invoiceId) {
         alert('ID de facture manquant');
@@ -18,7 +21,7 @@ function searchPeppol(invoiceId) {
     btn.innerHTML = '⏳ Recherche...';
     btn.disabled = true;
     
-    fetch('/dolibarr-19.0.0/htdocs/custom/peppolnew/peppol_send.php?id=' + invoiceId + '&action=lookup')
+    fetch(PEPPOLNEW_BASE + '?id=' + invoiceId + '&action=lookup')
         .then(response => response.json())
         .then(data => {
             btn.innerHTML = originalText;
@@ -56,7 +59,7 @@ function sendToPeppol(invoiceId) {
     btn.innerHTML = '⏳ Envoi en cours...';
     btn.disabled = true;
     
-    fetch('/dolibarr-19.0.0/htdocs/custom/peppolnew/peppol_send.php?id=' + invoiceId + '&action=send')
+    fetch(PEPPOLNEW_BASE + '?id=' + invoiceId + '&action=send')
         .then(response => response.json())
         .then(data => {
             btn.innerHTML = originalText;

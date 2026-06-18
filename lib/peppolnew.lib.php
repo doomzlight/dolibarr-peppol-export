@@ -40,10 +40,11 @@ function getPeppolIdFromCompany($company)
         return $company->idprof6;
     }
     
-    // 3. Fallback : construire depuis le numéro de TVA belge
-    if (!empty($company->tva_intra) && strpos($company->tva_intra, 'BE') === 0) {
-        $vat_number = str_replace(array('BE', '.', ' '), '', $company->tva_intra);
-        return '9925:be' . str_pad($vat_number, 10, '0', STR_PAD_LEFT);
+    // 3. Fallback : construire depuis le numéro d'entreprise belge (schéma 0208,
+    //    recommandé et enregistré dans l'annuaire Peppol ; 9925/TVA est obsolète).
+    if (!empty($company->tva_intra) && stripos($company->tva_intra, 'BE') === 0) {
+        $enterprise = str_replace(array('BE', 'be', '.', ' '), '', $company->tva_intra);
+        return '0208:' . str_pad($enterprise, 10, '0', STR_PAD_LEFT);
     }
     
     return '';

@@ -90,9 +90,10 @@ if ($action == 'send') {
     
     // Determine document type
     $is_credit_note = ($invoice->type == Facture::TYPE_CREDIT_NOTE);
-    $document_type = $is_credit_note ? 
-        'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2::CreditNote##urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0::2.1' :
-        'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2::Invoice##urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0::2.1';
+    // Le documentType Peppol doit être préfixé par "busdox-docid-qns::" (cf. API Peppyrus)
+    $document_type = $is_credit_note ?
+        'busdox-docid-qns::urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2::CreditNote##urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0::2.1' :
+        'busdox-docid-qns::urn:oasis:names:specification:ubl:schema:xsd:Invoice-2::Invoice##urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0::2.1';
     
     $result = $peppolApi->sendDocument($ubl_xml, $recipient_id, $document_type);
     

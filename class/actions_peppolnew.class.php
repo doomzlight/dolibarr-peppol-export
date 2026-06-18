@@ -9,6 +9,8 @@ class ActionsPeppolnew
         if (in_array('invoicecard', explode(':', $parameters['context']))) {
             if (($object->statut == 1 || $object->statut == 2) && $object->type != 2) {
                 
+                // Expose la racine d'URL Dolibarr au JS (corrige les chemins codés en dur)
+                print '<script type="text/javascript">var PEPPOLNEW_URL_ROOT = "'.dol_escape_js(DOL_URL_ROOT).'";</script>';
                 // Charge le JS
                 print '<script src="'.DOL_URL_ROOT.'/custom/peppolnew/js/peppolnew.js"></script>';
                 
