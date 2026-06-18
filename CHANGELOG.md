@@ -8,6 +8,31 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ---
 
+## [1.1.0] - 2026-06-18
+
+### 🐛 Corrigé (conformité PEPPOL BIS Billing 3.0)
+
+- **Parsing IBAN** : la requête SQL lisait une colonne `iban` inexistante. Dans
+  Dolibarr l'IBAN est stocké dans `bank_account.iban_prefix`. La requête utilise
+  désormais `iban_prefix AS iban` et un tri sûr (`courant DESC, rowid ASC`).
+  L'IBAN/BIC apparaît maintenant correctement dans `cac:PayeeFinancialAccount`.
+- **`BuyerReference` obligatoire** (règle `PEPPOL-EN16931-R003`) : toujours émis,
+  avec repli sur la référence de la facture quand la référence client est absente.
+- **Note de crédit** : émet `cbc:CreditNoteTypeCode` au lieu de `cbc:InvoiceTypeCode`.
+- **`EndpointID`** (BT-34 / BT-49, obligatoire) : dérivé du champ `peppyrus_id` /
+  `idprof6`, sinon construit depuis le numéro de TVA (code EAS par pays).
+- **`PartyTaxScheme` fournisseur** : n'est plus émis vide lorsque le numéro de TVA
+  est absent (un `CompanyID` vide était invalide).
+- **Catégorie de TVA** : `Z` pour les taux à 0 %, `S` pour les taux normaux,
+  au lieu d'un `S` codé en dur.
+- **Descripteur de module en double** supprimé (`class/modPeppolNew.class.php`)
+  pour éviter une redéclaration de classe.
+
+Validé : facture de test générée → **statut `valid`** sur un validateur officiel
+PEPPOL BIS Billing 3.0 (0 erreur, 0 avertissement).
+
+---
+
 ## [1.0.0] - 2024-12-15
 
 ### 🎉 Première version publique

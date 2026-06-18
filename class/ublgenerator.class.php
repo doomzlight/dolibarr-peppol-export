@@ -54,7 +54,8 @@ class UBLGenerator
             $this->addElement($xml, $root, 'cbc:DueDate', dol_print_date($this->invoice->date_lim_reglement, '%Y-%m-%d'));
         }
         
-        $this->addElement($xml, $root, 'cbc:InvoiceTypeCode', $is_credit_note ? '381' : '380');
+        // L'élément du type de document diffère entre Invoice et CreditNote
+        $this->addElement($xml, $root, $is_credit_note ? 'cbc:CreditNoteTypeCode' : 'cbc:InvoiceTypeCode', $is_credit_note ? '381' : '380');
         
         if ($this->invoice->note_public) {
             $this->addElement($xml, $root, 'cbc:Note', $this->invoice->note_public);
@@ -62,9 +63,11 @@ class UBLGenerator
         
         $this->addElement($xml, $root, 'cbc:DocumentCurrencyCode', $conf->currency);
         
-        if ($this->invoice->ref_client) {
-            $this->addElement($xml, $root, 'cbc:BuyerReference', $this->invoice->ref_client);
-        }
+        // BuyerReference (BT-10) est obligatoire pour PEPPOL (règle PEPPOL-EN16931-R003 :
+        // une référence acheteur OU une référence de commande doit être présente).
+        // On utilise la référence client si disponible, sinon la référence de la facture.
+        $buyer_reference = !empty($this->invoice->ref_client) ? $this->invoice->ref_client : $this->invoice->ref;
+        $this->addElement($xml, $root, 'cbc:BuyerReference', $buyer_reference);
         
         $this->addSupplierParty($xml, $root, $mysoc);
         $this->addCustomerParty($xml, $root, $this->company);
@@ -84,9 +87,10 @@ class UBLGenerator
         $party = $xml->createElement('cac:Party');
         $supplier->appendChild($party);
         
-        if (!empty($mysoc->idprof6)) {
-            $endpoint = $this->addElement($xml, $party, 'cbc:EndpointID', $mysoc->idprof6);
-            $endpoint->setAttribute('schemeID', '9925');
+        $ep = $this->getEndpoint($mysoc);
+        if ($ep !== null) {
+            $endpoint = $this->addElement($xml, $party, 'cbc:EndpointID', $ep['value']);
+            $endpoint->setAttribute('schemeID', $ep['scheme']);
         }
         
         $partyName = $xml->createElement('cac:PartyName');
@@ -104,15 +108,15 @@ class UBLGenerator
             $this->addElement($xml, $country, 'cbc:IdentificationCode', $mysoc->country_code);
         }
         
-        $taxScheme = $xml->createElement('cac:PartyTaxScheme');
-        $party->appendChild($taxScheme);
         if ($mysoc->tva_intra) {
+            $taxScheme = $xml->createElement('cac:PartyTaxScheme');
+            $party->appendChild($taxScheme);
             $this->addElement($xml, $taxScheme, 'cbc:CompanyID', $mysoc->tva_intra);
+            $taxSchemeNode = $xml->createElement('cac:TaxScheme');
+            $taxScheme->appendChild($taxSchemeNode);
+            $this->addElement($xml, $taxSchemeNode, 'cbc:ID', 'VAT');
         }
-        $taxSchemeNode = $xml->createElement('cac:TaxScheme');
-        $taxScheme->appendChild($taxSchemeNode);
-        $this->addElement($xml, $taxSchemeNode, 'cbc:ID', 'VAT');
-        
+
         $legalEntity = $xml->createElement('cac:PartyLegalEntity');
         $party->appendChild($legalEntity);
         $this->addElement($xml, $legalEntity, 'cbc:RegistrationName', $mysoc->name);
@@ -136,9 +140,10 @@ class UBLGenerator
         $party = $xml->createElement('cac:Party');
         $customer->appendChild($party);
         
-        if (!empty($company->idprof6)) {
-            $endpoint = $this->addElement($xml, $party, 'cbc:EndpointID', $company->idprof6);
-            $endpoint->setAttribute('schemeID', '9925');
+        $ep = $this->getEndpoint($company);
+        if ($ep !== null) {
+            $endpoint = $this->addElement($xml, $party, 'cbc:EndpointID', $ep['value']);
+            $endpoint->setAttribute('schemeID', $ep['scheme']);
         }
         
         $partyName = $xml->createElement('cac:PartyName');
@@ -206,10 +211,12 @@ if (!empty($conf->global->MAIN_INFO_IBAN)) {
 }
 
 // Méthode 2: Via les comptes bancaires
+// NOTE: dans Dolibarr la colonne IBAN s'appelle "iban_prefix" (nom historique),
+// et le BIC "bic". Trier pour prendre le compte par défaut en premier.
 if (empty($iban)) {
-    require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
-    
-    $sql = "SELECT iban, bic FROM ".MAIN_DB_PREFIX."bank_account WHERE entity = ".$conf->entity." AND clos = 0 LIMIT 1";
+    $sql = "SELECT iban_prefix as iban, bic FROM ".MAIN_DB_PREFIX."bank_account";
+    $sql .= " WHERE entity = ".((int) $conf->entity)." AND clos = 0 AND iban_prefix <> ''";
+    $sql .= " ORDER BY courant DESC, rowid ASC";
     $resql = $this->db->query($sql);
     if ($resql && $this->db->num_rows($resql) > 0) {
         $obj = $this->db->fetch_object($resql);
@@ -266,7 +273,7 @@ if (!empty($iban)) {
             
             $taxCategory = $xml->createElement('cac:TaxCategory');
             $taxSubtotal->appendChild($taxCategory);
-            $this->addElement($xml, $taxCategory, 'cbc:ID', 'S');
+            $this->addElement($xml, $taxCategory, 'cbc:ID', $this->getTaxCategoryCode($rate));
             $this->addElement($xml, $taxCategory, 'cbc:Percent', number_format($rate, 2, '.', ''));
             
             $taxScheme = $xml->createElement('cac:TaxScheme');
@@ -333,7 +340,7 @@ if (!empty($iban)) {
         
             $classifiedTaxCategory = $xml->createElement('cac:ClassifiedTaxCategory');
             $item->appendChild($classifiedTaxCategory);
-            $this->addElement($xml, $classifiedTaxCategory, 'cbc:ID', 'S');
+            $this->addElement($xml, $classifiedTaxCategory, 'cbc:ID', $this->getTaxCategoryCode($line->tva_tx));
             $this->addElement($xml, $classifiedTaxCategory, 'cbc:Percent', number_format($line->tva_tx, 2, '.', ''));
             
             $taxScheme = $xml->createElement('cac:TaxScheme');
@@ -348,6 +355,55 @@ if (!empty($iban)) {
         }
     }
     
+    /**
+     * Détermine l'EndpointID Peppol (BT-34 / BT-49) d'une société.
+     * Ordre de priorité : champ personnalisé peppyrus_id, idprof6, puis numéro de TVA.
+     * Retourne array('scheme' => '9925', 'value' => 'BE0886776275') ou null.
+     */
+    private function getEndpoint($company)
+    {
+        $pid = '';
+        if (!empty($company->array_options['options_peppyrus_id'])) {
+            $pid = $company->array_options['options_peppyrus_id'];
+        } elseif (!empty($company->idprof6)) {
+            $pid = $company->idprof6;
+        }
+
+        // Format déjà qualifié "scheme:value" (ex: 9925:BE0886776275)
+        if ($pid !== '' && strpos($pid, ':') !== false) {
+            list($scheme, $value) = explode(':', $pid, 2);
+            return array('scheme' => trim($scheme), 'value' => strtoupper(trim($value)));
+        }
+        if ($pid !== '') {
+            return array('scheme' => '9925', 'value' => strtoupper($pid));
+        }
+
+        // Fallback : construire depuis le numéro de TVA intracommunautaire
+        if (!empty($company->tva_intra)) {
+            $vat = strtoupper(str_replace(array(' ', '.', '-'), '', $company->tva_intra));
+            $cc = substr($vat, 0, 2);
+            // Codes EAS par pays (liste non exhaustive, principaux pays UE)
+            $eas = array(
+                'BE' => '9925', 'NL' => '9944', 'FR' => '9957', 'DE' => '9930',
+                'LU' => '9938', 'ES' => '9920', 'IT' => '9906', 'AT' => '9914',
+            );
+            if (isset($eas[$cc])) {
+                return array('scheme' => $eas[$cc], 'value' => $vat);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Code de catégorie de TVA (UNCL5305) en fonction du taux.
+     * 'S' = taux normal (>0), 'Z' = taux zéro (0%).
+     */
+    private function getTaxCategoryCode($rate)
+    {
+        return ((float) $rate > 0) ? 'S' : 'Z';
+    }
+
     private function addElement($xml, $parent, $name, $value)
     {
         $element = $xml->createElement($name);
