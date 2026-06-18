@@ -31,24 +31,30 @@ Export Dolibarr customer invoices as **UBL 2.1 / PEPPOL BIS Billing 3.0** XML an
 
 ## Installation
 
-1. Copy the module into Dolibarr's custom modules directory **using the folder name `peppolnew`**:
+The module **must** live in a folder named `peppolnew` inside Dolibarr's custom modules directory — it references its own files via that path:
 
-   ```
-   htdocs/custom/peppolnew/
-   ```
+```
+<dolibarr>/htdocs/custom/peppolnew/
+```
 
-   > The folder **must** be named `peppolnew` — the module references its own files via that path. Cloning the repository directly will create a `dolibarr-peppol-export/` folder; rename it to `peppolnew`.
+**Option A — git clone** (the second argument forces the correct folder name):
 
-   ```bash
-   git clone https://github.com/doomzlight/dolibarr-peppol-export.git peppolnew
-   # then move "peppolnew" into htdocs/custom/
-   ```
+```bash
+cd <dolibarr>/htdocs/custom
+git clone https://github.com/doomzlight/dolibarr-peppol-export.git peppolnew
+```
 
-2. In Dolibarr, go to **Home → Setup → Modules/Applications**, find **PEPPOL Export NEW**, and enable it.
+**Option B — ZIP upload:** download the repository ZIP, **rename the extracted folder to `peppolnew`**, then either drop it into `htdocs/custom/` or upload it via **Home → Setup → Modules → Deploy/install external app/module**.
+
+Then:
+
+1. Go to **Home → Setup → Modules/Applications**, find **PEPPOL Export NEW**, and click to **enable** it.
 
    On activation the module automatically:
    - creates the `llx_peppolnew_log` table (send history), and
    - adds a **Peppol ID** custom field (`peppyrus_id`) to third parties.
+
+2. *(Optional, non‑admin users)* Grant the **Export invoices to Peppol** permission under **Home → Users & Groups**. Administrators have it by default.
 
 ---
 
