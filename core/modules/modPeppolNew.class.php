@@ -47,6 +47,30 @@ class modPeppolNew extends DolibarrModules
     {
         $result = $this->_load_tables('/peppolnew/sql/');
         if ($result < 0) return -1;
+
+        // Champ personnalisé "Peppol ID" sur les tiers, pour saisir l'identifiant
+        // Peppol du destinataire (ex: 0208:0123456789). Utilisé par getPeppolIdFromCompany().
+        require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($this->db);
+        $extrafields->fetch_name_optionals_label('societe');
+        if (!isset($extrafields->attributes['societe']['label']['peppyrus_id'])) {
+            $extrafields->addExtraField(
+                'peppyrus_id',                       // attrname
+                'Peppol ID (ex: 0208:0123456789)',   // label
+                'varchar',                           // type
+                100,                                 // position
+                64,                                  // size
+                'societe',                           // elementtype
+                0,                                   // unique
+                0,                                   // required
+                '',                                  // default
+                '',                                  // param
+                1,                                   // alwayseditable
+                '',                                  // perms
+                1                                    // list (visible)
+            );
+        }
+
         return $this->_init(array(), $options);
     }
 }

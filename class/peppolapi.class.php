@@ -57,11 +57,15 @@ error_log('===========================');
             $endpoint = rtrim($this->api_url, '/') . '/message';
             
             // Préparer les données selon le format Peppyrus
+            // Le nom de fichier est attendu par l'API Peppyrus (cf. client officiel)
+            $file_name = (strpos($document_type, 'CreditNote') !== false) ? 'creditnote.xml' : 'invoice.xml';
+
             $payload = array(
                 'sender' => $sender_id,
                 'recipient' => $recipient_id,
                 'processType' => 'cenbii-procid-ubl::urn:fdc:peppol.eu:2017:poacc:billing:01:1.0',
                 'documentType' => $document_type,
+                'fileName' => $file_name,
                 'fileContent' => base64_encode($ubl_content) // IMPORTANT: encoder en base64
             );
             
