@@ -1,0 +1,54 @@
+# Module
+Module500000Name=Peppol Export
+Module500000Desc=Export invoices as UBL to Peppol
+Module500002Name=Peppol Export
+Module500002Desc=Export invoices as UBL to Peppol
+
+# Configuration
+PeppolExportSetup=Peppol Export setup
+Settings=Settings
+PeppolAPIURL=Peppol API URL
+PeppolAPIURLHelp=Peppyrus API URL (default: https://api.peppyrus.be/v1 ; test: https://api.test.peppyrus.be/v1)
+PeppolAPIKey=API key
+PeppolAPIKeyHelp=Your Peppyrus API key
+YourPeppolID=Your Peppol ID
+YourPeppolIDHelp=Belgium: scheme 0208 (enterprise number) recommended, e.g. 0208:0123456789
+PeppolModuleLanguage=Module language
+PeppolModuleLanguageHelp=Display language for the labels added by this module (does not affect behaviour)
+LangFrench=French
+LangEnglish=English
+HowToUseTitle=How to use the module
+HowToUseIntro=This module sends your invoices as UBL to Peppol.
+HowToUseStep1=Create an account at https://peppyrus.be
+HowToUseStep2=Get your API key from your account
+HowToUseStep3=Configure the Peppol identifiers on the third-party records
+HowToUseStep4=Use the "Send to Peppol" button on your invoices
+
+# Buttons
+GenerateUBL=Generate UBL
+PeppolNetworkLookup=Peppol lookup
+SendToPeppol=Send to Peppol
+CustomerPeppolID=Customer Peppol ID
+
+# Server messages
+PeppolAccessForbidden=Access forbidden
+InvoiceNotFound=Invoice not found
+APIKeyMissing=API key missing
+PeppolRecipientNotConfigured=Customer Peppol ID not configured
+ErrorGeneratingUBL=Error generating UBL
+InvalidAction=Invalid action
+
+# JavaScript messages
+JsMissingInvoiceId=Missing invoice ID
+JsConfirmLookup=Look up this customer in the Peppol directory?
+JsSearching=Searching...
+JsParticipantFound=Participant found in Peppol!
+JsParticipantId=Peppol ID
+JsServices=Services
+JsConfirmSend=Do you want to send this invoice to the Peppol network?
+JsSending=Sending...
+JsInvoiceSent=Invoice sent successfully to Peppol!
+JsTransactionId=Transaction ID
+JsCheckDashboard=Check your Peppyrus dashboard to track it.
+JsConnectionError=Connection error
+JsError=Error

@@ -31,6 +31,7 @@ class modPeppolNew extends DolibarrModules
             0 => array('PEPPOLNEW_API_URL', 'chaine', 'https://api.peppyrus.be/v1', 'URL de l\'API Peppol', 0),
             1 => array('PEPPOLNEW_API_KEY', 'chaine', '', 'Clé API Peppol', 0),
             2 => array('PEPPOLNEW_PEPPOL_ID', 'chaine', '', 'Votre ID Peppol', 0),
+            3 => array('PEPPOLNEW_LANG', 'chaine', 'fr_FR', 'Langue d\'affichage du module', 0),
         );
         
         // Permissions

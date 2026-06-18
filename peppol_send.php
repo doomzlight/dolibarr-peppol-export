@@ -34,6 +34,7 @@ dol_include_once('/peppolnew/class/peppolapi.class.php');
 dol_include_once('/peppolnew/lib/peppolnew.lib.php');
 
 $langs->load("peppolnew@peppolnew");
+$mylangs = peppolnewGetLangs();
 
 // Get parameters
 $id = GETPOST('id', 'int');
@@ -41,7 +42,7 @@ $action = GETPOST('action', 'alpha');
 
 // Access control
 if (!$user->rights->facture->lire) {
-    print json_encode(array('success' => false, 'message' => 'Access forbidden'));
+    print json_encode(array('success' => false, 'message' => $mylangs->trans('PeppolAccessForbidden')));
     exit;
 }
 
@@ -50,7 +51,7 @@ $invoice = new Facture($db);
 $result = $invoice->fetch($id);
 
 if ($result <= 0) {
-    print json_encode(array('success' => false, 'message' => 'Invoice not found'));
+    print json_encode(array('success' => false, 'message' => $mylangs->trans('InvoiceNotFound')));
     exit;
 }
 
@@ -64,24 +65,24 @@ if ($action == 'send') {
     
     // Check if API is configured
     if (empty($conf->global->PEPPOLNEW_API_KEY)) {
-        print json_encode(array('success' => false, 'message' => 'API Key manquante'));
+        print json_encode(array('success' => false, 'message' => $mylangs->trans('APIKeyMissing')));
         exit;
     }
-    
+
     // Get recipient Peppol ID
     $recipient_id = getPeppolIdFromCompany($invoice->thirdparty);
-    
+
     if (empty($recipient_id)) {
-        print json_encode(array('success' => false, 'message' => 'ID Peppol client non configuré'));
+        print json_encode(array('success' => false, 'message' => $mylangs->trans('PeppolRecipientNotConfigured')));
         exit;
     }
-    
+
     // Generate UBL
     $ublGenerator = new UBLGenerator($db);
     $ubl_xml = $ublGenerator->generateFromInvoice($id);
-    
+
     if (!$ubl_xml) {
-        print json_encode(array('success' => false, 'message' => 'Erreur génération UBL'));
+        print json_encode(array('success' => false, 'message' => $mylangs->trans('ErrorGeneratingUBL')));
         exit;
     }
     
@@ -123,10 +124,10 @@ if ($action == 'send') {
     $ubl_xml = $ublGenerator->generateFromInvoice($id);
     
     if (!$ubl_xml) {
-        print json_encode(array('success' => false, 'message' => 'Erreur génération UBL'));
+        print json_encode(array('success' => false, 'message' => $mylangs->trans('ErrorGeneratingUBL')));
         exit;
     }
-    
+
     // Set headers for download
     header('Content-Type: application/xml; charset=UTF-8');
     header('Content-Disposition: attachment; filename="' . $invoice->ref . '.xml"');
@@ -145,10 +146,10 @@ if ($action == 'send') {
     }
     
     if (empty($recipient_id)) {
-        print json_encode(array('success' => false, 'message' => 'ID Peppol non configuré'));
+        print json_encode(array('success' => false, 'message' => $mylangs->trans('PeppolRecipientNotConfigured')));
         exit;
     }
-    
+
     $peppolApi = new PeppolAPI($db);
     $result = $peppolApi->lookupParticipant($recipient_id);
     
@@ -157,5 +158,5 @@ if ($action == 'send') {
 }
 
 // If no valid action
-print json_encode(array('success' => false, 'message' => 'Action invalide'));
+print json_encode(array('success' => false, 'message' => $mylangs->trans('InvalidAction')));
 exit;

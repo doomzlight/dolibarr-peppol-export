@@ -4,6 +4,26 @@
  * MODIFIÉ pour utiliser le champ personnalisé peppyrus_id
  */
 
+/**
+ * Retourne un objet de traduction forcé sur la langue choisie dans la config
+ * du module (PEPPOLNEW_LANG : 'fr_FR' ou 'en_US'), indépendamment de la langue
+ * globale de l'utilisateur. Par défaut : fr_FR (comportement d'origine).
+ *
+ * @return Translate
+ */
+function peppolnewGetLangs()
+{
+    global $conf, $langs;
+
+    $code = !empty($conf->global->PEPPOLNEW_LANG) ? $conf->global->PEPPOLNEW_LANG : 'fr_FR';
+
+    $l = new Translate('', $conf);
+    $l->setDefaultLang($code);
+    $l->loadLangs(array('main', 'admin', 'peppolnew@peppolnew'));
+
+    return $l;
+}
+
 function peppolnewAdminPrepareHead()
 {
     global $langs, $conf;

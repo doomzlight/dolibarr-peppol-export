@@ -1,29 +1,54 @@
 # Module
 Module500000Name=Peppol Export
 Module500000Desc=Export des factures au format UBL vers Peppol
+Module500002Name=Peppol Export
+Module500002Desc=Export des factures au format UBL vers Peppol
 
-# Admin
+# Configuration
 PeppolExportSetup=Configuration Peppol Export
 Settings=Paramètres
 PeppolAPIURL=URL de l'API Peppol
-PeppolAPIURLHelp=URL de l'API Peppyrus
+PeppolAPIURLHelp=URL de l'API Peppyrus (défaut : https://api.peppyrus.be/v1 ; test : https://api.test.peppyrus.be/v1)
 PeppolAPIKey=Clé API
 PeppolAPIKeyHelp=Votre clé API Peppyrus
-YourPeppolID=Votre identifiant Peppol
-YourPeppolIDHelp=Format: 9925:be0886776275
+YourPeppolID=Votre ID Peppol
+YourPeppolIDHelp=Belgique : schéma 0208 (numéro d'entreprise) recommandé, ex : 0208:0123456789
+PeppolModuleLanguage=Langue du module
+PeppolModuleLanguageHelp=Langue d'affichage des libellés ajoutés par ce module (n'affecte pas le fonctionnement)
+LangFrench=Français
+LangEnglish=Anglais
+HowToUseTitle=Comment utiliser le module
+HowToUseIntro=Ce module permet d'envoyer vos factures au format UBL vers Peppol.
+HowToUseStep1=Créez un compte sur https://peppyrus.be
+HowToUseStep2=Obtenez votre clé API depuis votre compte
+HowToUseStep3=Configurez les identifiants Peppol dans les fiches tiers
+HowToUseStep4=Utilisez le bouton « Envoyer Peppol » sur vos factures
 
 # Boutons
-SendToPeppol=Envoyer vers Peppol
 GenerateUBL=Générer UBL
-PeppolNetworkLookup=Rechercher dans Peppol
+PeppolNetworkLookup=Rechercher Peppol
+SendToPeppol=Envoyer Peppol
+CustomerPeppolID=ID Peppol client
 
-# Messages
-PeppolSendConfirm=Envoyer cette facture vers Peppol ?
-InvoiceSentSuccessfully=Facture envoyée avec succès
-ErrorSendingToPeppol=Erreur lors de l'envoi
-PeppolRecipientNotConfigured=ID Peppol du client non configuré
-ParticipantFound=Participant trouvé
-ParticipantNotFound=Participant non trouvé
-APIKeyMissing=Clé API non configurée
+# Messages serveur
+PeppolAccessForbidden=Accès refusé
+InvoiceNotFound=Facture introuvable
+APIKeyMissing=Clé API manquante
+PeppolRecipientNotConfigured=ID Peppol client non configuré
 ErrorGeneratingUBL=Erreur lors de la génération UBL
-UBLGeneratedSuccessfully=Fichier UBL généré avec succès
+InvalidAction=Action invalide
+
+# Messages JavaScript
+JsMissingInvoiceId=ID de facture manquant
+JsConfirmLookup=Rechercher ce client dans l'annuaire Peppol ?
+JsSearching=Recherche...
+JsParticipantFound=Participant trouvé dans Peppol !
+JsParticipantId=ID Peppol
+JsServices=Services
+JsConfirmSend=Voulez-vous envoyer cette facture vers le réseau Peppol ?
+JsSending=Envoi en cours...
+JsInvoiceSent=Facture envoyée avec succès vers Peppol !
+JsTransactionId=ID Transaction
+JsCheckDashboard=Vérifiez votre tableau de bord Peppyrus pour le suivi.
+JsConnectionError=Erreur de connexion
+JsError=Erreur
