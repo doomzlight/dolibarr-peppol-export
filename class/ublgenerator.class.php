@@ -110,7 +110,7 @@ class UBLGenerator
         
         $address = $xml->createElement('cac:PostalAddress');
         $party->appendChild($address);
-        if ($mysoc->address) $this->addElement($xml, $address, 'cbc:StreetName', $mysoc->address);
+        $this->addStreetLines($xml, $address, $mysoc->address);
         if ($mysoc->town) $this->addElement($xml, $address, 'cbc:CityName', $mysoc->town);
         if ($mysoc->zip) $this->addElement($xml, $address, 'cbc:PostalZone', $mysoc->zip);
         if (!empty($mysoc->state)) $this->addElement($xml, $address, 'cbc:CountrySubentity', $mysoc->state);
@@ -132,9 +132,7 @@ class UBLGenerator
         $legalEntity = $xml->createElement('cac:PartyLegalEntity');
         $party->appendChild($legalEntity);
         $this->addElement($xml, $legalEntity, 'cbc:RegistrationName', $mysoc->name);
-        if ($mysoc->idprof1) {
-            $this->addElement($xml, $legalEntity, 'cbc:CompanyID', $mysoc->idprof1);
-        }
+        $this->addLegalCompanyId($xml, $legalEntity, $mysoc);
         
         if ($mysoc->email || $mysoc->phone) {
             $contact = $xml->createElement('cac:Contact');
@@ -164,7 +162,7 @@ class UBLGenerator
         
         $address = $xml->createElement('cac:PostalAddress');
         $party->appendChild($address);
-        if ($company->address) $this->addElement($xml, $address, 'cbc:StreetName', $company->address);
+        $this->addStreetLines($xml, $address, $company->address);
         if ($company->town) $this->addElement($xml, $address, 'cbc:CityName', $company->town);
         if ($company->zip) $this->addElement($xml, $address, 'cbc:PostalZone', $company->zip);
         if (!empty($company->state)) $this->addElement($xml, $address, 'cbc:CountrySubentity', $company->state);
@@ -186,9 +184,7 @@ class UBLGenerator
         $legalEntity = $xml->createElement('cac:PartyLegalEntity');
         $party->appendChild($legalEntity);
         $this->addElement($xml, $legalEntity, 'cbc:RegistrationName', $company->name);
-        if ($company->idprof1) {
-            $this->addElement($xml, $legalEntity, 'cbc:CompanyID', $company->idprof1);
-        }
+        $this->addLegalCompanyId($xml, $legalEntity, $company);
         
         if ($company->email || $company->phone) {
             $contact = $xml->createElement('cac:Contact');
@@ -421,6 +417,64 @@ if (!empty($iban)) {
     private function getTaxCategoryCode($rate)
     {
         return ((float) $rate > 0) ? 'S' : 'Z';
+    }
+
+    /**
+     * Ajoute la rue en gérant les adresses sur plusieurs lignes :
+     * 1re ligne -> cbc:StreetName (BT-35), 2e ligne -> cbc:AdditionalStreetName (BT-36).
+     * Les lignes suivantes éventuelles sont concaténées à la 2e.
+     */
+    private function addStreetLines($xml, $address, $value)
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return;
+        }
+        $lines = preg_split('/\r\n|\r|\n/', $value);
+        $lines = array_values(array_filter(array_map('trim', $lines), function ($l) {
+            return $l !== '';
+        }));
+        if (empty($lines)) {
+            return;
+        }
+        $this->addElement($xml, $address, 'cbc:StreetName', $lines[0]);
+        if (count($lines) > 1) {
+            $additional = implode(', ', array_slice($lines, 1));
+            $this->addElement($xml, $address, 'cbc:AdditionalStreetName', $additional);
+        }
+    }
+
+    /**
+     * Ajoute l'identifiant légal d'entreprise (cac:PartyLegalEntity/cbc:CompanyID, BT-30/BT-47).
+     * Utilise le champ idprof1 si présent, sinon le dérive du numéro de TVA belge
+     * (TVA = BE + numéro d'entreprise). Ajoute le schemeID 0208 pour la Belgique.
+     */
+    private function addLegalCompanyId($xml, $legalEntity, $company)
+    {
+        $value = '';
+        $scheme = '';
+        $cc = !empty($company->country_code) ? strtoupper($company->country_code) : '';
+
+        if (!empty($company->idprof1)) {
+            $value = $company->idprof1;
+            if ($cc === 'BE') {
+                $scheme = '0208';
+            }
+        } elseif (!empty($company->tva_intra)) {
+            // Dérive le numéro d'entreprise depuis la TVA (Belgique uniquement)
+            $vat = strtoupper(str_replace(array(' ', '.', '-'), '', $company->tva_intra));
+            if (strpos($vat, 'BE') === 0) {
+                $value = substr($vat, 2);
+                $scheme = '0208';
+            }
+        }
+
+        if ($value !== '') {
+            $el = $this->addElement($xml, $legalEntity, 'cbc:CompanyID', $value);
+            if ($scheme !== '') {
+                $el->setAttribute('schemeID', $scheme);
+            }
+        }
     }
 
     private function addElement($xml, $parent, $name, $value)
