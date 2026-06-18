@@ -11,7 +11,7 @@ class modPeppolNew extends DolibarrModules
         $this->family = "technic";
         $this->name = preg_replace('/^mod/i', '', get_class($this));
         $this->description = "Module pour exporter les factures au format UBL vers Peppol";
-        $this->version = '1.0.0';
+        $this->version = '1.1.0';
         $this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
         $this->picto = 'generic';
         
