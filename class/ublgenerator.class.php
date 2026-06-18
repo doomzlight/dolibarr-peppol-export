@@ -113,6 +113,7 @@ class UBLGenerator
         if ($mysoc->address) $this->addElement($xml, $address, 'cbc:StreetName', $mysoc->address);
         if ($mysoc->town) $this->addElement($xml, $address, 'cbc:CityName', $mysoc->town);
         if ($mysoc->zip) $this->addElement($xml, $address, 'cbc:PostalZone', $mysoc->zip);
+        if (!empty($mysoc->state)) $this->addElement($xml, $address, 'cbc:CountrySubentity', $mysoc->state);
         if ($mysoc->country_code) {
             $country = $xml->createElement('cac:Country');
             $address->appendChild($country);
@@ -166,6 +167,7 @@ class UBLGenerator
         if ($company->address) $this->addElement($xml, $address, 'cbc:StreetName', $company->address);
         if ($company->town) $this->addElement($xml, $address, 'cbc:CityName', $company->town);
         if ($company->zip) $this->addElement($xml, $address, 'cbc:PostalZone', $company->zip);
+        if (!empty($company->state)) $this->addElement($xml, $address, 'cbc:CountrySubentity', $company->state);
         if ($company->country_code) {
             $country = $xml->createElement('cac:Country');
             $address->appendChild($country);
