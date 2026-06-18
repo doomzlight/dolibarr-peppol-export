@@ -21,6 +21,10 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - **Note de crédit** : émet `cbc:CreditNoteTypeCode` au lieu de `cbc:InvoiceTypeCode`.
 - **`EndpointID`** (BT-34 / BT-49, obligatoire) : dérivé du champ `peppyrus_id` /
   `idprof6`, sinon construit depuis le numéro de TVA (code EAS par pays).
+  Pour la Belgique, repli sur le schéma **`0208`** (numéro d'entreprise BCE) au
+  lieu de `9925` (TVA), souvent non enregistré dans l'annuaire Peppol.
+  L'`EndpointID` de l'émetteur utilise en priorité `PEPPOLNEW_PEPPOL_ID`
+  (ex: `0208:0123456789`) configuré dans le module.
 - **`PartyTaxScheme` fournisseur** : n'est plus émis vide lorsque le numéro de TVA
   est absent (un `CompanyID` vide était invalide).
 - **Catégorie de TVA** : `Z` pour les taux à 0 %, `S` pour les taux normaux,

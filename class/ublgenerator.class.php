@@ -81,13 +81,24 @@ class UBLGenerator
     
     private function addSupplierParty($xml, $root, $mysoc)
     {
+        global $conf;
+
         $supplier = $xml->createElement('cac:AccountingSupplierParty');
         $root->appendChild($supplier);
-        
+
         $party = $xml->createElement('cac:Party');
         $supplier->appendChild($party);
-        
-        $ep = $this->getEndpoint($mysoc);
+
+        // Pour l'émetteur (votre société), l'ID Peppol configuré dans le module
+        // (PEPPOLNEW_PEPPOL_ID, ex: "0208:0123456789") est prioritaire.
+        $ep = null;
+        if (!empty($conf->global->PEPPOLNEW_PEPPOL_ID) && strpos($conf->global->PEPPOLNEW_PEPPOL_ID, ':') !== false) {
+            list($scheme, $value) = explode(':', $conf->global->PEPPOLNEW_PEPPOL_ID, 2);
+            $ep = array('scheme' => trim($scheme), 'value' => strtoupper(trim($value)));
+        }
+        if ($ep === null) {
+            $ep = $this->getEndpoint($mysoc);
+        }
         if ($ep !== null) {
             $endpoint = $this->addElement($xml, $party, 'cbc:EndpointID', $ep['value']);
             $endpoint->setAttribute('schemeID', $ep['scheme']);
@@ -382,9 +393,15 @@ if (!empty($iban)) {
         if (!empty($company->tva_intra)) {
             $vat = strtoupper(str_replace(array(' ', '.', '-'), '', $company->tva_intra));
             $cc = substr($vat, 0, 2);
-            // Codes EAS par pays (liste non exhaustive, principaux pays UE)
+            if ($cc === 'BE') {
+                // Belgique : le schéma recommandé est 0208 (numéro d'entreprise / BCE).
+                // Le schéma TVA 9925 est progressivement abandonné et souvent
+                // non enregistré dans l'annuaire Peppol.
+                return array('scheme' => '0208', 'value' => substr($vat, 2));
+            }
+            // Codes EAS par pays basés sur la TVA (liste non exhaustive)
             $eas = array(
-                'BE' => '9925', 'NL' => '9944', 'FR' => '9957', 'DE' => '9930',
+                'NL' => '9944', 'FR' => '9957', 'DE' => '9930',
                 'LU' => '9938', 'ES' => '9920', 'IT' => '9906', 'AT' => '9914',
             );
             if (isset($eas[$cc])) {
