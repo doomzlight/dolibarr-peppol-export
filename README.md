@@ -130,9 +130,7 @@ When going live, switch the API URL back to `https://api.peppyrus.be/v1` and use
 
 ```
 peppolnew/
-├── admin/
-│   ├── setup.php             # Module configuration page
-│   └── diagnostic.php        # Standalone diagnostic page
+├── admin/setup.php                 # Module configuration page
 ├── class/
 │   ├── ublgenerator.class.php      # Builds the UBL / BIS 3.0 XML
 │   ├── peppolapi.class.php         # Peppyrus API client (send / lookup)
@@ -143,8 +141,7 @@ peppolnew/
 ├── js/peppolnew.js                 # Front-end (send/lookup actions)
 ├── langs/{en_US,fr_FR}/peppolnew.lang
 ├── sql/llx_peppolnew_log.sql       # Send-history table
-├── peppol_send.php                 # Endpoint: generate / send / lookup
-└── tools/                          # Developer/test helpers (not required at runtime)
+└── peppol_send.php                 # Endpoint: generate / send / lookup
 ```
 
 ---
