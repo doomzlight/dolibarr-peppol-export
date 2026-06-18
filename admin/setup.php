@@ -85,8 +85,8 @@ print '</tr>';
 // Peppol ID
 print '<tr class="oddeven">';
 print '<td><span class="fieldrequired">Votre ID Peppol</span><br>';
-print '<span class="opacitymedium">Format: 9925:be0886776275</span></td>';
-print '<td><input type="text" class="flat minwidth300" name="PEPPOLNEW_PEPPOL_ID" value="'.dol_escape_htmltag(!empty($conf->global->PEPPOLNEW_PEPPOL_ID) ? $conf->global->PEPPOLNEW_PEPPOL_ID : '').'" placeholder="9925:be0886776275"></td>';
+print '<span class="opacitymedium">Belgique : schéma 0208 (numéro d\'entreprise) recommandé, ex: 0208:0123456789</span></td>';
+print '<td><input type="text" class="flat minwidth300" name="PEPPOLNEW_PEPPOL_ID" value="'.dol_escape_htmltag(!empty($conf->global->PEPPOLNEW_PEPPOL_ID) ? $conf->global->PEPPOLNEW_PEPPOL_ID : '').'" placeholder="0208:0123456789"></td>';
 print '</tr>';
 
 print '</table>';
