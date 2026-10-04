@@ -11,6 +11,7 @@ class UBLGenerator
     private $db;
     private $invoice;
     private $company;
+    private $is_credit_note = false;
     
     public function __construct($db)
     {
@@ -31,6 +32,7 @@ class UBLGenerator
         $this->company->fetch($this->invoice->socid);
         
         $is_credit_note = ($this->invoice->type == Facture::TYPE_CREDIT_NOTE);
+        $this->is_credit_note = $is_credit_note;
         
         $xml = new DOMDocument('1.0', 'UTF-8');
         $xml->formatOutput = true;
@@ -50,7 +52,9 @@ class UBLGenerator
         $this->addElement($xml, $root, 'cbc:ID', $this->invoice->ref);
         $this->addElement($xml, $root, 'cbc:IssueDate', dol_print_date($this->invoice->date, '%Y-%m-%d'));
         
-        if ($this->invoice->date_lim_reglement) {
+        // cbc:DueDate n'existe pas dans CreditNote-2 : pour une note de crédit,
+        // l'échéance est émise dans cac:PaymentMeans/cbc:PaymentDueDate.
+        if ($this->invoice->date_lim_reglement && !$is_credit_note) {
             $this->addElement($xml, $root, 'cbc:DueDate', dol_print_date($this->invoice->date_lim_reglement, '%Y-%m-%d'));
         }
         
@@ -202,6 +206,10 @@ class UBLGenerator
         $root->appendChild($paymentMeans);
         
         $this->addElement($xml, $paymentMeans, 'cbc:PaymentMeansCode', '30');
+
+        if ($this->is_credit_note && $this->invoice->date_lim_reglement) {
+            $this->addElement($xml, $paymentMeans, 'cbc:PaymentDueDate', dol_print_date($this->invoice->date_lim_reglement, '%Y-%m-%d'));
+        }
         
         if ($this->invoice->ref) {
             $this->addElement($xml, $paymentMeans, 'cbc:PaymentID', $this->invoice->ref);
@@ -257,7 +265,7 @@ if (!empty($iban)) {
         $taxTotal = $xml->createElement('cac:TaxTotal');
         $root->appendChild($taxTotal);
         
-        $taxAmount = $this->addElement($xml, $taxTotal, 'cbc:TaxAmount', number_format($this->invoice->total_tva, 2, '.', ''));
+        $taxAmount = $this->addElement($xml, $taxTotal, 'cbc:TaxAmount', number_format($this->amt($this->invoice->total_tva), 2, '.', ''));
         $taxAmount->setAttribute('currencyID', $GLOBALS['conf']->currency);
         
         $tax_rates = array();
@@ -266,8 +274,8 @@ if (!empty($iban)) {
             if (!isset($tax_rates[$rate])) {
                 $tax_rates[$rate] = array('base' => 0, 'amount' => 0);
             }
-            $tax_rates[$rate]['base'] += $line->total_ht;
-            $tax_rates[$rate]['amount'] += $line->total_tva;
+            $tax_rates[$rate]['base'] += $this->amt($line->total_ht);
+            $tax_rates[$rate]['amount'] += $this->amt($line->total_tva);
         }
         
         foreach ($tax_rates as $rate => $amounts) {
@@ -298,16 +306,16 @@ if (!empty($iban)) {
         
         $currency = $GLOBALS['conf']->currency;
         
-        $lineExtension = $this->addElement($xml, $monetaryTotal, 'cbc:LineExtensionAmount', number_format($this->invoice->total_ht, 2, '.', ''));
+        $lineExtension = $this->addElement($xml, $monetaryTotal, 'cbc:LineExtensionAmount', number_format($this->amt($this->invoice->total_ht), 2, '.', ''));
         $lineExtension->setAttribute('currencyID', $currency);
         
-        $taxExclusive = $this->addElement($xml, $monetaryTotal, 'cbc:TaxExclusiveAmount', number_format($this->invoice->total_ht, 2, '.', ''));
+        $taxExclusive = $this->addElement($xml, $monetaryTotal, 'cbc:TaxExclusiveAmount', number_format($this->amt($this->invoice->total_ht), 2, '.', ''));
         $taxExclusive->setAttribute('currencyID', $currency);
         
-        $taxInclusive = $this->addElement($xml, $monetaryTotal, 'cbc:TaxInclusiveAmount', number_format($this->invoice->total_ttc, 2, '.', ''));
+        $taxInclusive = $this->addElement($xml, $monetaryTotal, 'cbc:TaxInclusiveAmount', number_format($this->amt($this->invoice->total_ttc), 2, '.', ''));
         $taxInclusive->setAttribute('currencyID', $currency);
         
-        $payable = $this->addElement($xml, $monetaryTotal, 'cbc:PayableAmount', number_format($this->invoice->total_ttc, 2, '.', ''));
+        $payable = $this->addElement($xml, $monetaryTotal, 'cbc:PayableAmount', number_format($this->amt($this->invoice->total_ttc), 2, '.', ''));
         $payable->setAttribute('currencyID', $currency);
     }
     
@@ -322,10 +330,10 @@ if (!empty($iban)) {
             
             $this->addElement($xml, $invoiceLine, 'cbc:ID', ($i + 1));
             
-            $quantity = $this->addElement($xml, $invoiceLine, 'cbc:' . ($is_credit_note ? 'CreditedQuantity' : 'InvoicedQuantity'), $line->qty);
+            $quantity = $this->addElement($xml, $invoiceLine, 'cbc:' . ($is_credit_note ? 'CreditedQuantity' : 'InvoicedQuantity'), $this->amt($line->qty));
             $quantity->setAttribute('unitCode', 'C62');
             
-            $lineExtension = $this->addElement($xml, $invoiceLine, 'cbc:LineExtensionAmount', number_format($line->total_ht, 2, '.', ''));
+            $lineExtension = $this->addElement($xml, $invoiceLine, 'cbc:LineExtensionAmount', number_format($this->amt($line->total_ht), 2, '.', ''));
             $lineExtension->setAttribute('currencyID', $currency);
             
             $item = $xml->createElement('cac:Item');
@@ -359,7 +367,7 @@ if (!empty($iban)) {
             $price = $xml->createElement('cac:Price');
             $invoiceLine->appendChild($price);
             
-            $priceAmount = $this->addElement($xml, $price, 'cbc:PriceAmount', number_format($line->subprice, 2, '.', ''));
+            $priceAmount = $this->addElement($xml, $price, 'cbc:PriceAmount', number_format($this->amt($line->subprice), 2, '.', ''));
             $priceAmount->setAttribute('currencyID', $currency);
         }
     }
@@ -475,6 +483,15 @@ if (!empty($iban)) {
                 $el->setAttribute('schemeID', $scheme);
             }
         }
+    }
+
+    /**
+     * Dolibarr stocke les notes de crédit avec des montants négatifs, alors que
+     * UBL CreditNote attend des valeurs positives : on prend la valeur absolue.
+     */
+    private function amt($value)
+    {
+        return $this->is_credit_note ? abs((float) $value) : $value;
     }
 
     private function addElement($xml, $parent, $name, $value)
